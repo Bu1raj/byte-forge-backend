@@ -3,7 +3,7 @@ package models
 type SubmitReq struct {
 	Language      string `json:"language"`
 	Code          string `json:"code"`
-	TimeoutSecond int    `json:"timeout_seconds"` // TODO:why do we need this?
+	TimeoutSecond int    `json:"timeout_seconds"`
 }
 
 type Result struct {
@@ -14,4 +14,9 @@ type Result struct {
 	TimedOut  bool   `json:"timed_out"`
 	Duration  string `json:"duration"`
 	Completed bool   `json:"completed"`
+}
+
+type KafkaCodeSubmissionsPayload struct {
+	ID            string    `json:"id"`
+	SubmitRequest SubmitReq `json:"submit_request"`
 }
