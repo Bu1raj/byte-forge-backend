@@ -1,5 +1,6 @@
 package executor
 
+// FilenameForLang returns the expected filename for the given programming language.
 func FilenameForLang(lang string) string {
 	switch lang {
 	case "python":
@@ -15,6 +16,8 @@ func FilenameForLang(lang string) string {
 	}
 }
 
+// DockerImageAndCmd returns the appropriate Docker image and command to run
+// for the given programming language.
 func DockerImageAndCmd(lang string) (image, cmd string) {
 	switch lang {
 	case "python":
