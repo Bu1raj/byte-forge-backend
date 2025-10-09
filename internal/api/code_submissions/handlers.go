@@ -3,18 +3,15 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"path/filepath"
 
 	"github.com/Bu1raj/byte-forge-backend/internal/models"
-	"github.com/Bu1raj/byte-forge-backend/internal/queue"
+	"github.com/Bu1raj/byte-forge-backend/internal/store"
 	"github.com/Bu1raj/byte-forge-backend/pkg/utils"
 )
 
-type SubmitHandler struct {
-	Producer *queue.Producer
-}
-
 // SubmitHandler handles code submission requests.
-func (h *SubmitHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func SubmitHandler(w http.ResponseWriter, r *http.Request) {
 	var req models.SubmitReq
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -32,9 +29,16 @@ func (h *SubmitHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		SubmitRequest: req,
 	}
 	data, _ := json.Marshal(payload)
-	err = h.Producer.SendMessage(data)
+	submissions_producer, ok := store.GetProducer("submissions")
+	if !ok {
+		http.Error(w, "failed to get submissions producer", http.StatusInternalServerError)
+		return
+	}
+
+	err = submissions_producer.SendMessage(data)
 	if err != nil {
 		http.Error(w, "failed to enqueue job", http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -42,17 +46,14 @@ func (h *SubmitHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(map[string]string{"id": jobId})
 }
 
-// TODO we would need a consumer here which can listen the results
-// and update a persistent store or in-memory store, hence commenting this out for now
-
 // ResultHandler handles requests to fetch the result of a code execution.
-// func ResultHandler(w http.ResponseWriter, r *http.Request) {
-// 	id := filepath.Base(r.URL.Path)
-// 	val, ok := results.Load(id)
-// 	if !ok {
-// 		http.Error(w, "not found", http.StatusNotFound)
-// 		return
-// 	}
-// 	w.Header().Set("Content-Type", "application/json")
-// 	_ = json.NewEncoder(w).Encode(val)
-// }
+func ResultHandler(w http.ResponseWriter, r *http.Request) {
+	id := filepath.Base(r.URL.Path)
+	val, ok := store.GetResult(id)
+	if !ok {
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(val)
+}

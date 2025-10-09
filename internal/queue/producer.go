@@ -45,3 +45,8 @@ func (p *Producer) SendMessage(msg []byte) error {
 
 	return nil
 }
+
+// Close closes the Kafka writer.
+func (p *Producer) Close() error {
+	return p.writer.Close()
+}

@@ -11,20 +11,22 @@ import (
 
 	"github.com/Bu1raj/byte-forge-backend/internal/executor"
 	"github.com/Bu1raj/byte-forge-backend/internal/models"
-	"github.com/Bu1raj/byte-forge-backend/internal/queue"
+	"github.com/Bu1raj/byte-forge-backend/internal/store"
 	"github.com/segmentio/kafka-go"
 )
 
 // need to store these in vault
-const BROKER = "localhost:9092"
-const TOPIC = "submissions"
-const GROUP_ID = "submission-workers"
+var config = &store.KafkaStoreConfig{
+	Broker:         "localhost:9092",
+	ProducerTopics: []string{"results"},
+	ConsumerTopics: []string{"submissions"},
+}
 
 func main() {
-	consumer := queue.NewConsumer(BROKER, TOPIC, GROUP_ID)
-
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+
+	store.InitKafkaUtilStore(config)
 
 	handleCodeSubmissions := func(msg *kafka.Message) error {
 		var job models.KafkaCodeSubmissionsPayload
@@ -36,13 +38,30 @@ func main() {
 		log.Printf("Processing job %s", job.ID)
 
 		res := executor.RunSubmission(job.ID, job.SubmitRequest)
-		// TODO we need publish the result to another topic
-		// from there have the server consume and update the store
-		// for now just printing the result
-		fmt.Printf("Result: %+v\n", res)
 
+		result := models.KafkaCodeResultsPayload{
+			ID:     job.ID,
+			Result: res,
+		}
+		// Publish results to results topic
+		data, _ := json.Marshal(result)
+		results_producer, ok := store.GetProducer("results")
+		if !ok {
+			log.Printf("Results producer not found in store")
+			return fmt.Errorf("results producer not found in store")
+		}
+		err = results_producer.SendMessage(data)
+		if err != nil {
+			log.Printf("failed to publish results to kafka: %v", err)
+		}
+
+		fmt.Printf("Result: %+v\n", res)
 		return nil
 	}
-
-	consumer.Consume(ctx, handleCodeSubmissions)
+	submissions_consumer, ok := store.GetConsumer("submissions")
+	if !ok {
+		log.Fatalf("Submissions consumer not found in store")
+	}
+	log.Println("Starting submission consumer...")
+	submissions_consumer.Consume(ctx, handleCodeSubmissions)
 }
