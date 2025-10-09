@@ -20,3 +20,8 @@ type KafkaCodeSubmissionsPayload struct {
 	ID            string    `json:"id"`
 	SubmitRequest SubmitReq `json:"submit_request"`
 }
+
+type KafkaCodeResultsPayload struct {
+	ID     string `json:"id"`
+	Result Result `json:"result"`
+}

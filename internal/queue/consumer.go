@@ -31,20 +31,31 @@ func NewConsumer(broker, topic, groupID string) *Consumer {
 func (c *Consumer) Consume(parentCtx context.Context, handler func(msg *kafka.Message) error) error {
 	defer c.reader.Close()
 	for {
+		// Check if the parent context is done, faster shutdown
+		select {
+		case <-parentCtx.Done():
+			log.Println("Parent context done, consumer shutting down")
+			return parentCtx.Err()
+		default:
+		}
+
 		readCtx, cancel := context.WithTimeout(parentCtx, 30*time.Second)
 		msg, err := c.reader.ReadMessage(readCtx)
 		cancel() // explicitly call the cancel to cleanup the readCtx
 		if err != nil {
 			// this should occur when parent calls a cancel
 			// parentCtx.Err() == context.Cancelled
-			// although there can be other scenarios
 			if errors.Is(err, context.Canceled) || errors.Is(parentCtx.Err(), context.Canceled) {
+				log.Println("Received cancellation signal, consumer shutting down")
 				return parentCtx.Err()
-			} else if readCtx.Err() == context.DeadlineExceeded {
-				log.Printf("reading from queue...")
-			} else {
-				log.Printf("unexpected consumer error: %v", err)
 			}
+
+			// read timeout (no messages in the last 30s)
+			if readCtx.Err() == context.DeadlineExceeded {
+				continue
+			}
+
+			log.Printf("unexpected consumer error: %v", err)
 			time.Sleep(time.Second)
 			continue
 		}
@@ -55,4 +66,9 @@ func (c *Consumer) Consume(parentCtx context.Context, handler func(msg *kafka.Me
 			// TODO do we want to requeue here ?
 		}
 	}
+}
+
+// Close closes the Kafka reader.
+func (c *Consumer) Close() error {
+	return c.reader.Close()
 }
