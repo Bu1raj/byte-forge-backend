@@ -27,7 +27,7 @@ docker exec -it kafka bash
 kafka-topics --create --topic submissions --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
 ```
 ```
-kafka-topics --create --topic submissions --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+kafka-topics --create --topic results --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
 ```
 
 **List the topics for confirmation**
@@ -58,6 +58,7 @@ curl -X POST http://localhost:8080/submit \
 
 > [!NOTE]
 > before doing the `curl` request run `docker pull python:3.11-alpine`, or increase the timeout to 45s
+
 
 
 
