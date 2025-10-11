@@ -31,7 +31,7 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
-    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    command: ["redis-server", "--save", "300", "10", "--save", "60", "10000", "--loglevel", "warning"]
     restart: unless-stopped
 
 volumes:
