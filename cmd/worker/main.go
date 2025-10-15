@@ -17,7 +17,7 @@ import (
 
 // need to store these in vault
 var config = &store.KafkaStoreConfig{
-	Broker:         "localhost:9092",
+	Broker:         "localhost:29092",
 	ProducerTopics: []string{"results"},
 	ConsumerTopics: []string{"submissions"},
 }
