@@ -16,7 +16,7 @@ import (
 
 // TODO this should come from vault or env vars
 var config = &store.KafkaStoreConfig{
-	Broker:         "localhost:9092",
+	Broker:         "localhost:29092",
 	ProducerTopics: []string{"submissions"},
 	ConsumerTopics: []string{"results"},
 }

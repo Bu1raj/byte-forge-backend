@@ -60,6 +60,9 @@ curl -X POST http://localhost:8080/submit \
 > before doing the `curl` request run `docker pull python:3.11-alpine`, or increase the timeout to 45s
 
 
+**Kafka UI is present on localhost:8081
+
+
 
 
 
