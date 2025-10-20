@@ -34,7 +34,8 @@ func NewRedisStore(config *RedisStoreConfig) *RedisStore {
 
 	ctx := context.Background()
 	if err := client.Ping(ctx).Err(); err != nil {
-		log.Fatalf("Failed to connect to Redis: %v", err)
+		log.Printf("Failed to connect to Redis: %v", err)
+		return nil
 	}
 
 	log.Println("Connected to Redis successfully")

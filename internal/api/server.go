@@ -68,7 +68,7 @@ func (srv *Server) Start(ctx context.Context) {
 
 // Shutdown gracefully shuts down the server and background processes
 func (srv *Server) Shutdown(ctx context.Context) {
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	if err := srv.HTTP.Shutdown(shutdownCtx); err != nil {
 		log.Printf("HTTP server Shutdown: %v", err)
