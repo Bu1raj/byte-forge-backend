@@ -16,6 +16,7 @@ type Consumer struct {
 // NewConsumer creates a new Kafka consumer, by initializing a kafka.Reader
 // with the provided broker address, topic, and group ID.
 func NewConsumer(broker, topic, groupID string) *Consumer {
+	log.Printf("Broker : %s\n", broker)
 	return &Consumer{
 		reader: kafka.NewReader(kafka.ReaderConfig{
 			Brokers: []string{broker},
