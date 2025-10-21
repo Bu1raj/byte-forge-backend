@@ -9,24 +9,29 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/Bu1raj/byte-forge-backend/internal/config"
 	"github.com/Bu1raj/byte-forge-backend/internal/executor"
 	"github.com/Bu1raj/byte-forge-backend/internal/models"
 	"github.com/Bu1raj/byte-forge-backend/internal/store"
 	"github.com/segmentio/kafka-go"
 )
 
-// need to store these in vault
-var config = &store.KafkaStoreConfig{
-	Broker:         "localhost:29092",
-	ProducerTopics: []string{"results"},
-	ConsumerTopics: []string{"submissions"},
-}
-
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	store.InitKafkaUtilStore(config)
+	// Load configuration from environment variables
+	cfg, err := config.LoadWorkerConfig()
+	if err != nil {
+		log.Fatalf("failed to load configuration: %v", err)
+	}
+
+	kafkaConfig := &store.KafkaStoreConfig{
+		Broker:         cfg.Kafka.Broker,
+		ProducerTopics: cfg.Kafka.ProducerTopics,
+		ConsumerTopics: cfg.Kafka.ConsumerTopics,
+	}
+	store.InitKafkaUtilStore(kafkaConfig)
 
 	handleCodeSubmissions := func(msg *kafka.Message) error {
 		var job models.KafkaCodeSubmissionsPayload
