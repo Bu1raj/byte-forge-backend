@@ -11,15 +11,9 @@ import (
 	"time"
 
 	"github.com/Bu1raj/byte-forge-backend/internal/background"
+	"github.com/Bu1raj/byte-forge-backend/internal/config"
 	"github.com/Bu1raj/byte-forge-backend/internal/store"
 )
-
-// TODO this should come from vault or env vars
-var config = &store.KafkaStoreConfig{
-	Broker:         "localhost:29092",
-	ProducerTopics: []string{"submissions"},
-	ConsumerTopics: []string{"results"},
-}
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -27,15 +21,26 @@ func main() {
 
 	var wg sync.WaitGroup
 
+	// Load configuration from environment variables
+	cfg, err := config.LoadServerConfig()
+	if err != nil {
+		log.Fatalf("failed to load configuration: %v", err)
+	}
+
 	// Initialize Kafka producers and start the consumers
-	store.InitKafkaUtilStore(config)
+	kafkaConfig := &store.KafkaStoreConfig{
+		Broker:         cfg.Kafka.Broker,
+		ProducerTopics: cfg.Kafka.ProducerTopics,
+		ConsumerTopics: cfg.Kafka.ConsumerTopics,
+	}
+	store.InitKafkaUtilStore(kafkaConfig)
 	background.StartResultConsumer(ctx, &wg)
 
 	mux := http.NewServeMux()
 	RegisterRoutes(mux)
 
 	srv := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + cfg.Server.Port,
 		Handler: mux,
 	}
 
@@ -43,7 +48,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		log.Println("listening :8080")
+		log.Printf("listening :%s", cfg.Server.Port)
 
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("server failed: %v", err)
