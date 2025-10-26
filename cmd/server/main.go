@@ -21,26 +21,17 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	// Load configuration from environment variables
-	cfg, err := config.LoadServerConfig()
-	if err != nil {
-		log.Fatalf("failed to load configuration: %v", err)
-	}
-
-	// Initialize Kafka producers and start the consumers
-	kafkaConfig := &store.KafkaStoreConfig{
-		Broker:         cfg.Kafka.Broker,
-		ProducerTopics: cfg.Kafka.ProducerTopics,
-		ConsumerTopics: cfg.Kafka.ConsumerTopics,
-	}
-	store.InitKafkaUtilStore(kafkaConfig)
+	// Initialize Kafka store from environment variables
+	// Server: produces to 'submissions', consumes from 'results'
+	store.InitKafkaUtilStoreFromEnv([]string{"submissions"}, []string{"results"})
 	background.StartResultConsumer(ctx, &wg)
 
 	mux := http.NewServeMux()
 	RegisterRoutes(mux)
 
+	serverPort := config.GetServerPort()
 	srv := &http.Server{
-		Addr:    ":" + cfg.Server.Port,
+		Addr:    ":" + serverPort,
 		Handler: mux,
 	}
 
@@ -48,7 +39,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		log.Printf("listening :%s", cfg.Server.Port)
+		log.Printf("listening :%s", serverPort)
 
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("server failed: %v", err)

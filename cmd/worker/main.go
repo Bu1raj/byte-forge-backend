@@ -9,7 +9,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Bu1raj/byte-forge-backend/internal/config"
 	"github.com/Bu1raj/byte-forge-backend/internal/executor"
 	"github.com/Bu1raj/byte-forge-backend/internal/models"
 	"github.com/Bu1raj/byte-forge-backend/internal/store"
@@ -20,18 +19,9 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	// Load configuration from environment variables
-	cfg, err := config.LoadWorkerConfig()
-	if err != nil {
-		log.Fatalf("failed to load configuration: %v", err)
-	}
-
-	kafkaConfig := &store.KafkaStoreConfig{
-		Broker:         cfg.Kafka.Broker,
-		ProducerTopics: cfg.Kafka.ProducerTopics,
-		ConsumerTopics: cfg.Kafka.ConsumerTopics,
-	}
-	store.InitKafkaUtilStore(kafkaConfig)
+	// Initialize Kafka store from environment variables
+	// Worker: consumes from 'submissions', produces to 'results'
+	store.InitKafkaUtilStoreFromEnv([]string{"results"}, []string{"submissions"})
 
 	handleCodeSubmissions := func(msg *kafka.Message) error {
 		var job models.KafkaCodeSubmissionsPayload

@@ -12,27 +12,39 @@ go mod tidy
 
 ## Configuration
 
-The application uses environment variables for configuration. You can set these in a `.env` file in the root directory or export them directly in your shell.
+The application uses environment variables for configuration. Each component (server and worker) has its own example configuration file.
 
-### Configuration Variables
+### Server Configuration
 
-Copy `.env.example` to `.env` and modify as needed:
+Copy `.env.server.example` to `.env` and modify as needed:
 ```bash
-cp .env.example .env
+cp .env.server.example .env
 ```
 
-Available configuration options:
+Available configuration options for server:
 - `SERVER_PORT`: HTTP server port (default: 8080)
 - `KAFKA_BROKER`: Kafka broker address (default: localhost:29092)
-- `KAFKA_PRODUCER_TOPICS`: Comma-separated list of Kafka producer topics
-- `KAFKA_CONSUMER_TOPICS`: Comma-separated list of Kafka consumer topics
+- `KAFKA_PRODUCER_TOPICS`: Comma-separated list of Kafka producer topics (default: submissions)
+- `KAFKA_CONSUMER_TOPICS`: Comma-separated list of Kafka consumer topics (default: results)
 - `REDIS_ADDRESS`: Redis server address (default: localhost:6379)
 - `REDIS_PASSWORD`: Redis password (optional)
 - `REDIS_DB`: Redis database number (default: 0)
 
+### Worker Configuration
+
+Copy `.env.worker.example` to `.env` for the worker and modify as needed:
+```bash
+cp .env.worker.example .env
+```
+
+Available configuration options for worker:
+- `KAFKA_BROKER`: Kafka broker address (default: localhost:29092)
+- `KAFKA_PRODUCER_TOPICS`: Comma-separated list of Kafka producer topics (default: results)
+- `KAFKA_CONSUMER_TOPICS`: Comma-separated list of Kafka consumer topics (default: submissions)
+
 **Note:** The server and worker use different Kafka topic configurations:
 - **Server**: Produces to `submissions`, consumes from `results`
-- **Worker**: Produces to `results`, consumes from `submissions`
+- **Worker**: Consumes from `submissions`, produces to `results`
 
 ----
 > [!NOTE]

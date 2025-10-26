@@ -2,6 +2,7 @@ package store
 
 import (
 	"log"
+	"os"
 	"sync"
 
 	"github.com/Bu1raj/byte-forge-backend/internal/queue"
@@ -24,6 +25,29 @@ var (
 	globalKafkaUtilStore *kafkaUtilStore
 )
 
+// LoadKafkaConfigFromEnv loads Kafka configuration from environment variables
+func LoadKafkaConfigFromEnv(producerDefaults, consumerDefaults []string) *KafkaStoreConfig {
+	broker := os.Getenv("KAFKA_BROKER")
+	if broker == "" {
+		broker = "localhost:29092"
+	}
+
+	producerTopics := getEnvAsSlice("KAFKA_PRODUCER_TOPICS", producerDefaults)
+	consumerTopics := getEnvAsSlice("KAFKA_CONSUMER_TOPICS", consumerDefaults)
+
+	return &KafkaStoreConfig{
+		Broker:         broker,
+		ProducerTopics: producerTopics,
+		ConsumerTopics: consumerTopics,
+	}
+}
+
+// InitKafkaUtilStoreFromEnv initializes Kafka store from environment variables
+func InitKafkaUtilStoreFromEnv(producerDefaults, consumerDefaults []string) {
+	config := LoadKafkaConfigFromEnv(producerDefaults, consumerDefaults)
+	InitKafkaUtilStore(config)
+}
+
 // Init initializes all Kafka producers/consumers once at startup
 func InitKafkaUtilStore(config *KafkaStoreConfig) {
 	log.Println("[store] initializing kafka store...")
@@ -41,6 +65,40 @@ func InitKafkaUtilStore(config *KafkaStoreConfig) {
 		globalKafkaUtilStore.consumers[topic] = queue.NewConsumer(config.Broker, topic, topic+"-group")
 	}
 	log.Println("[store] kafka store initialized")
+}
+
+// getEnvAsSlice gets an environment variable as a comma-separated slice
+func getEnvAsSlice(key string, defaultValue []string) []string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	// Simple split by comma
+	var result []string
+	for _, v := range splitByComma(value) {
+		if v != "" {
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+// splitByComma splits a string by comma
+func splitByComma(s string) []string {
+	var result []string
+	current := ""
+	for _, char := range s {
+		if char == ',' {
+			result = append(result, current)
+			current = ""
+		} else {
+			current += string(char)
+		}
+	}
+	if current != "" {
+		result = append(result, current)
+	}
+	return result
 }
 
 // TODO Can add methods to register new producers/consumers dynamically if needed
