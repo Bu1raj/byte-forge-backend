@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Bu1raj/byte-forge-backend/internal/executor"
+	judgezero "github.com/Bu1raj/byte-forge-backend/internal/judge-zero"
 	"github.com/Bu1raj/byte-forge-backend/internal/models"
 	"github.com/Bu1raj/byte-forge-backend/internal/store"
 	kafkaStore "github.com/Bu1raj/byte-forge-backend/internal/store/kafka"
@@ -37,7 +37,11 @@ func main() {
 		}
 
 		log.Printf("Processing job %s", job.ID)
-		res := executor.RunSubmission(job.ID, job.SubmitRequest)
+		res, err := judgezero.SubmitCode(job.Request)
+		if err != nil {
+			log.Printf("failed to submit code to judge0: %v", err)
+			return err
+		}
 
 		result := models.KafkaCodeResultsPayload{
 			ID:     job.ID,
