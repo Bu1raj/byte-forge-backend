@@ -37,7 +37,11 @@ func getJudge0Timeout() time.Duration {
 // A timeout is configured to prevent indefinite hangs. The timeout can be adjusted
 // via the JUDGE0_TIMEOUT_SECONDS environment variable (default: 30 seconds).
 func SubmitCode(req models.SubmissionsRequest) (models.SubmissionResponse, error) {
-	body, _ := json.Marshal(req)
+	body, err := json.Marshal(req)
+	if err != nil {
+		return models.SubmissionResponse{}, fmt.Errorf("failed to marshal request: %w", err)
+	}
+	
 	fields := "stdout,stderr,time,memory,status,exit_code,exit_signal"
 	url := fmt.Sprintf("http://172.19.6.225:2358/submissions?base64_encoded=false&wait=true&fields=%s", fields)
 	
