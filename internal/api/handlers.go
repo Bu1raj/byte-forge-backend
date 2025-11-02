@@ -11,21 +11,21 @@ import (
 
 // SubmitHandler handles code submission requests.
 func (srv *Server) SubmitHandler(w http.ResponseWriter, r *http.Request) {
-	var req models.SubmitReq
+	var req models.SubmissionsRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		http.Error(w, "bad request: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	// might need some work here, like max timeout
-	if req.TimeoutSecond <= 0 {
-		req.TimeoutSecond = 3
-	}
+	// TODO: need to look into timeout handling with judge0
+	// if req.TimeoutSecond <= 0 {
+	// 	req.TimeoutSecond = 3
+	// }
 
 	jobId := utils.NewID()
 	payload := models.KafkaCodeSubmissionsPayload{
-		ID:            jobId,
-		SubmitRequest: req,
+		ID:      jobId,
+		Request: req,
 	}
 	data, _ := json.Marshal(payload)
 
@@ -49,7 +49,7 @@ func (srv *Server) SubmitHandler(w http.ResponseWriter, r *http.Request) {
 
 // ResultHandler handles requests to fetch the result of a code execution.
 func (srv *Server) ResultHandler(w http.ResponseWriter, r *http.Request) {
-	var result models.Result
+	var result models.SubmissionResponse
 	id := filepath.Base(r.URL.Path)
 
 	err := srv.Store.Redis.Get(r.Context(), id, &result)
