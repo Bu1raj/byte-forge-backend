@@ -4,7 +4,6 @@ import (
 	"log"
 	"sync"
 
-	"github.com/Bu1raj/byte-forge-backend/internal/config"
 	"github.com/Bu1raj/byte-forge-backend/internal/queue"
 )
 
@@ -34,28 +33,28 @@ func SetKafkaDefaults(producers, consumers []string) {
 }
 
 // InitKafkaUtilStore initializes all Kafka producers/consumers from environment variables
-func InitKafkaUtilStore() {
-	log.Println("[store] initializing kafka store...")
+// func InitKafkaUtilStore() {
+// 	log.Println("[store] initializing kafka store...")
 
-	// Load configuration from environment variables
-	broker := config.GetEnv("KAFKA_BROKER", "localhost:29092")
-	producerTopics := config.GetEnvAsSlice("KAFKA_PRODUCER_TOPICS", producerDefaults)
-	consumerTopics := config.GetEnvAsSlice("KAFKA_CONSUMER_TOPICS", consumerDefaults)
+// 	// Load configuration from environment variables
+// 	broker := config.GetEnv("KAFKA_BROKER", "localhost:29092")
+// 	producerTopics := config.GetEnvAsSlice("KAFKA_PRODUCER_TOPICS", producerDefaults)
+// 	consumerTopics := config.GetEnvAsSlice("KAFKA_CONSUMER_TOPICS", consumerDefaults)
 
-	globalKafkaUtilStore = &kafkaUtilStore{
-		broker:    broker,
-		producers: make(map[string]*queue.Producer),
-		consumers: make(map[string]*queue.Consumer),
-	}
+// 	globalKafkaUtilStore = &kafkaUtilStore{
+// 		broker:    broker,
+// 		producers: make(map[string]*queue.Producer),
+// 		consumers: make(map[string]*queue.Consumer),
+// 	}
 
-	for _, topic := range producerTopics {
-		globalKafkaUtilStore.producers[topic] = queue.NewProducer(broker, topic)
-	}
-	for _, topic := range consumerTopics {
-		globalKafkaUtilStore.consumers[topic] = queue.NewConsumer(broker, topic, topic+"-group")
-	}
-	log.Println("[store] kafka store initialized")
-}
+// 	for _, topic := range producerTopics {
+// 		globalKafkaUtilStore.producers[topic] = queue.NewProducer(broker, topic)
+// 	}
+// 	for _, topic := range consumerTopics {
+// 		globalKafkaUtilStore.consumers[topic] = queue.NewConsumer(broker, topic, topic+"-group")
+// 	}
+// 	log.Println("[store] kafka store initialized")
+// }
 
 // TODO Can add methods to register new producers/consumers dynamically if needed
 // Can also add methods to unregister/close the producers/consumers
