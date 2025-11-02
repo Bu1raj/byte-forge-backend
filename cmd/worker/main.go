@@ -21,7 +21,8 @@ func main() {
 
 	// Initialize Kafka store from environment variables
 	// Worker: consumes from 'submissions', produces to 'results'
-	store.InitKafkaUtilStoreFromEnv([]string{"results"}, []string{"submissions"})
+	store.SetKafkaDefaults([]string{"results"}, []string{"submissions"})
+	store.InitKafkaUtilStore()
 
 	handleCodeSubmissions := func(msg *kafka.Message) error {
 		var job models.KafkaCodeSubmissionsPayload

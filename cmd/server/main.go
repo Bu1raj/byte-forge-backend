@@ -23,7 +23,8 @@ func main() {
 
 	// Initialize Kafka store from environment variables
 	// Server: produces to 'submissions', consumes from 'results'
-	store.InitKafkaUtilStoreFromEnv([]string{"submissions"}, []string{"results"})
+	store.SetKafkaDefaults([]string{"submissions"}, []string{"results"})
+	store.InitKafkaUtilStore()
 	background.StartResultConsumer(ctx, &wg)
 
 	mux := http.NewServeMux()
