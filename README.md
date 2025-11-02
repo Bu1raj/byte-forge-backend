@@ -62,6 +62,27 @@ curl -X POST http://localhost:8080/submit \
 
 **Kafka UI is present on localhost:8081
 
+## Configuration
+
+### Judge0 Timeout Settings
+
+The Judge0 HTTP client is configured with a timeout to prevent indefinite hangs when the service becomes unresponsive or when executing long-running code. You can configure the timeout using the `JUDGE0_TIMEOUT_SECONDS` environment variable.
+
+**Default:** 30 seconds
+
+**Example:**
+```bash
+# Set a 60-second timeout for Judge0 API calls
+export JUDGE0_TIMEOUT_SECONDS=60
+go run ./cmd/worker/
+```
+
+**Considerations:**
+- Since Judge0 runs code synchronously (with `wait=true`), the timeout should account for the maximum expected execution time of user-submitted code plus network overhead.
+- For typical code execution scenarios, 30-60 seconds is recommended.
+- If you expect longer-running code submissions, increase this value accordingly.
+- The timeout prevents the worker from hanging indefinitely if Judge0 becomes unresponsive.
+
 
 
 
