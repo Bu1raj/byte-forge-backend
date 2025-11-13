@@ -19,7 +19,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	store := store.InitStore(nil)
+	store := store.InitStore()
 
 	handleCodeSubmissions := func(msg *kafka.Message) error {
 		var job models.KafkaCodeSubmissionsPayload

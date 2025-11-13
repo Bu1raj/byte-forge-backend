@@ -9,7 +9,6 @@ import (
 
 	bgConsumer "github.com/Bu1raj/byte-forge-backend/internal/background_consumers"
 	"github.com/Bu1raj/byte-forge-backend/internal/store"
-	"github.com/Bu1raj/byte-forge-backend/internal/store/redis"
 )
 
 type Server struct {
@@ -20,7 +19,7 @@ type Server struct {
 }
 
 // NewServer creates a new Server instance
-func NewServer(redisConfig *redis.RedisStoreConfig) *Server {
+func NewServer() *Server {
 	mux := http.NewServeMux()
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -28,7 +27,7 @@ func NewServer(redisConfig *redis.RedisStoreConfig) *Server {
 	}
 
 	var wg sync.WaitGroup
-	store := store.InitStore(redisConfig)
+	store := store.InitStore()
 
 	var backgroundConsumers []bgConsumer.BgConsumer
 	resultConsumer := bgConsumer.NewResultConsumer(store)
