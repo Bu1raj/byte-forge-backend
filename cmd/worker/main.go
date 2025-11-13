@@ -12,22 +12,14 @@ import (
 	"github.com/Bu1raj/byte-forge-backend/internal/executor"
 	"github.com/Bu1raj/byte-forge-backend/internal/models"
 	"github.com/Bu1raj/byte-forge-backend/internal/store"
-	kafkaStore "github.com/Bu1raj/byte-forge-backend/internal/store/kafka"
 	kafka "github.com/segmentio/kafka-go"
 )
-
-// need to store these in vault
-var kafkaConfig = &kafkaStore.KafkaStoreConfig{
-	Broker:         "localhost:29092",
-	ProducerTopics: []string{"results"},
-	ConsumerTopics: []string{"submissions"},
-}
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	store := store.InitStore(kafkaConfig, nil)
+	store := store.InitStore()
 
 	handleCodeSubmissions := func(msg *kafka.Message) error {
 		var job models.KafkaCodeSubmissionsPayload

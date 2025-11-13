@@ -9,8 +9,6 @@ import (
 
 	bgConsumer "github.com/Bu1raj/byte-forge-backend/internal/background_consumers"
 	"github.com/Bu1raj/byte-forge-backend/internal/store"
-	"github.com/Bu1raj/byte-forge-backend/internal/store/kafka"
-	"github.com/Bu1raj/byte-forge-backend/internal/store/redis"
 )
 
 type Server struct {
@@ -21,7 +19,7 @@ type Server struct {
 }
 
 // NewServer creates a new Server instance
-func NewServer(kafkaConfig *kafka.KafkaStoreConfig, redisConfig *redis.RedisStoreConfig) *Server {
+func NewServer() *Server {
 	mux := http.NewServeMux()
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -29,7 +27,7 @@ func NewServer(kafkaConfig *kafka.KafkaStoreConfig, redisConfig *redis.RedisStor
 	}
 
 	var wg sync.WaitGroup
-	store := store.InitStore(kafkaConfig, redisConfig)
+	store := store.InitStore()
 
 	var backgroundConsumers []bgConsumer.BgConsumer
 	resultConsumer := bgConsumer.NewResultConsumer(store)
