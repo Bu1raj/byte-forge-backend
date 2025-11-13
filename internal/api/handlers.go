@@ -6,12 +6,11 @@ import (
 	"path/filepath"
 
 	"github.com/Bu1raj/byte-forge-backend/internal/models"
-	"github.com/Bu1raj/byte-forge-backend/internal/store"
 	"github.com/Bu1raj/byte-forge-backend/pkg/utils"
 )
 
 // SubmitHandler handles code submission requests.
-func SubmitHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *Server) SubmitHandler(w http.ResponseWriter, r *http.Request) {
 	var req models.SubmitReq
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -29,8 +28,10 @@ func SubmitHandler(w http.ResponseWriter, r *http.Request) {
 		SubmitRequest: req,
 	}
 	data, _ := json.Marshal(payload)
-	submissions_producer, ok := store.GetProducer("submissions")
+
+	submissions_producer, ok := srv.Store.Kafka.GetProducer("submissions")
 	if !ok {
+		// TODO: initialize producer if not exists, and add to store, and send the message
 		http.Error(w, "failed to get submissions producer", http.StatusInternalServerError)
 		return
 	}
@@ -47,13 +48,16 @@ func SubmitHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // ResultHandler handles requests to fetch the result of a code execution.
-func ResultHandler(w http.ResponseWriter, r *http.Request) {
+func (srv *Server) ResultHandler(w http.ResponseWriter, r *http.Request) {
+	var result models.Result
 	id := filepath.Base(r.URL.Path)
-	val, ok := store.GetResult(id)
-	if !ok {
+
+	err := srv.Store.Redis.Get(r.Context(), id, &result)
+	if err != nil {
 		http.Error(w, "not found", http.StatusNotFound)
 		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(val)
+	_ = json.NewEncoder(w).Encode(result)
 }
