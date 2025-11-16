@@ -25,7 +25,7 @@ func NewResultConsumer(store *store.Store) *ResultConsumer {
 // StartResultConsumer starts a background consumer to listen for code execution results
 func (rc *ResultConsumer) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
-	
+
 	resultConsumer, ok := rc.store.Kafka.GetConsumer("results")
 	if !ok {
 		log.Println("Results consumer not found in store")

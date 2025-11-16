@@ -11,16 +11,9 @@ type Store struct {
 }
 
 // InitStore initializes the Store with Kafka and Redis stores
-func InitStore(kafkaConfig *kafka.KafkaStoreConfig, redisConfig *redis.RedisStoreConfig) *Store {
-	var kafkaStore *kafka.KafkaUtilStore
-	if kafkaConfig != nil {
-		kafkaStore = kafka.NewKafkaUtilStore(kafkaConfig)
-	}
-
-	var redisStore *redis.RedisStore
-	if redisConfig != nil {
-		redisStore = redis.NewRedisStore(redisConfig)
-	}
+func InitStore() *Store {
+	kafkaStore := kafka.NewKafkaUtilStore()
+	redisStore := redis.NewRedisStore()
 
 	return &Store{
 		Kafka: kafkaStore,

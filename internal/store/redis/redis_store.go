@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Bu1raj/byte-forge-backend/internal/config"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -18,18 +19,14 @@ type RedisStore struct {
 	defaultExpiration time.Duration
 }
 
-type RedisStoreConfig struct {
-	Address  string
-	Password string
-	DB       int
-}
+// NewRedisStore initializes a new RedisStore with configuration from environment variables.
+func NewRedisStore() *RedisStore {
+	redisConfig := config.GetRedisConfig()
 
-// NewRedisStore initializes a new RedisStore with the given configuration.
-func NewRedisStore(config *RedisStoreConfig) *RedisStore {
 	client := redis.NewClient(&redis.Options{
-		Addr:     config.Address,
-		Password: config.Password,
-		DB:       config.DB,
+		Addr:     redisConfig.Address,
+		Password: redisConfig.Password,
+		DB:       redisConfig.DB,
 	})
 
 	ctx := context.Background()

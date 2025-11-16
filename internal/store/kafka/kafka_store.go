@@ -3,14 +3,9 @@ package kafka
 import (
 	"log"
 
+	"github.com/Bu1raj/byte-forge-backend/internal/config"
 	"github.com/Bu1raj/byte-forge-backend/internal/queue"
 )
-
-type KafkaStoreConfig struct {
-	Broker         string
-	ProducerTopics []string
-	ConsumerTopics []string
-}
 
 type KafkaUtilStore struct {
 	broker    string
@@ -19,20 +14,24 @@ type KafkaUtilStore struct {
 }
 
 // NewKafkaUtilStore initializes all Kafka producers/consumers once at startup
-func NewKafkaUtilStore(config *KafkaStoreConfig) *KafkaUtilStore {
+func NewKafkaUtilStore() *KafkaUtilStore {
 	log.Println("[store] initializing kafka store...")
 
+	kafkaConfig := config.GetKafkaConfig()
+
 	kafkaStore := &KafkaUtilStore{
-		broker:    config.Broker,
+		broker:    kafkaConfig.Broker,
 		producers: make(map[string]*queue.Producer),
 		consumers: make(map[string]*queue.Consumer),
 	}
 
-	for _, topic := range config.ProducerTopics {
-		kafkaStore.producers[topic] = queue.NewProducer(config.Broker, topic)
+	for _, topic := range kafkaConfig.ProducerTopics {
+		log.Println("[store] initializing kafka producer for topic:", topic)
+		kafkaStore.producers[topic] = queue.NewProducer(kafkaConfig.Broker, topic)
 	}
-	for _, topic := range config.ConsumerTopics {
-		kafkaStore.consumers[topic] = queue.NewConsumer(config.Broker, topic, topic+"-group")
+	for _, topic := range kafkaConfig.ConsumerTopics {
+		log.Println("[store] initializing kafka consumer for topic:", topic)
+		kafkaStore.consumers[topic] = queue.NewConsumer(kafkaConfig.Broker, topic, topic+"-group")
 	}
 	log.Println("[store] kafka store initialized")
 	return kafkaStore
