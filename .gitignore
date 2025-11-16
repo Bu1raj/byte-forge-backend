@@ -15,5 +15,9 @@ worker
 # Output of the go coverage tool
 *.out
 
+# dev scripts
+run-server.bat
+run-worker.bat
+
 # Dependency directories
 vendor/
